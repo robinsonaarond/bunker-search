@@ -12,6 +12,8 @@ Local search backend for offline datasets, with two modes:
 - Optionally generates an AI answer via Ollama (`answer=true`).
 - Ships embeddable widget at `/embed/bunker-search.js`.
 
+![Example Search Result](ExampleSearchResult.png)
+
 ## Why this avoids huge storage growth
 
 - Kiwix datasets are queried directly using Kiwix's own index.
