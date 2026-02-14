@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Server Home</title>
+  <meta name="description" content="Friendly landing page for hosted services: chat, offline library, AI, and Fedora repositories." />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1a30;
+      --muted:#9fb1d1;
+      --text:#eaf0ff;
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(125,211,252,.18), transparent 60%),
+        radial-gradient(900px 500px at 85% 0%, rgba(167,139,250,.14), transparent 60%),
+        radial-gradient(900px 500px at 50% 100%, rgba(52,211,153,.10), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+    a{color:inherit}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px}
+    header{
+      display:flex;gap:18px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+      margin:10px 0 22px;
+    }
+    .title{
+      min-width:260px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(26px, 3vw, 36px);
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      margin:8px 0 0;
+      color:var(--muted);
+      max-width:70ch;
+    }
+    .headerSearch{
+      margin-top:12px;
+      max-width:70ch;
+    }
+    .headerSearchNote{
+      margin:0 0 8px;
+      color:var(--muted);
+      font-size:13.5px;
+    }
+    .badgeRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+    .badge{
+      border:1px solid var(--border);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:13px;
+      color:var(--muted);
+      background: rgba(255,255,255,.03);
+    }
+    .badge strong{color:var(--text);font-weight:600}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:14px;
+      margin-top:14px;
+    }
+    .card{
+      grid-column: span 12;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:16px 16px 14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute;inset:-2px;
+      background: radial-gradient(700px 100px at 20% 0%, rgba(125,211,252,.12), transparent 55%),
+                  radial-gradient(700px 140px at 80% 0%, rgba(167,139,250,.10), transparent 55%);
+      pointer-events:none;
+    }
+    .card > *{position:relative}
+    .card h2{margin:0 0 8px;font-size:18px}
+    .card p{margin:8px 0;color:var(--muted)}
+    .kvs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .kv{
+      font-size:12.5px;color:var(--muted);
+      padding:6px 9px;border-radius:10px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.15);
+    }
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      text-decoration:none;
+      font-weight:600;
+      font-size:14px;
+      transition: transform .05s ease, background .15s ease;
+    }
+    .btn:hover{background: rgba(255,255,255,.08)}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{
+      border-color: rgba(125,211,252,.35);
+      background: rgba(125,211,252,.14);
+    }
+    .btn.secondary{
+      border-color: rgba(167,139,250,.35);
+      background: rgba(167,139,250,.12);
+    }
+    .hint{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(0,0,0,.12);
+      color: var(--muted);
+      font-size: 13.5px;
+    }
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .code{
+      font-family:var(--mono);
+      font-size:13px;
+      color:#dbe7ff;
+      background: rgba(0,0,0,.25);
+      border:1px solid var(--border);
+      padding:12px;
+      border-radius: 14px;
+      overflow:auto;
+      white-space: pre;
+    }
+    .small{font-size:12.5px;color:var(--muted)}
+    .footer{
+      margin-top:22px;
+      color:var(--muted);
+      font-size:12.5px;
+      display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      padding-top: 10px;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    .dot{width:8px;height:8px;border-radius:50%}
+    .dot.ok{background:var(--ok)}
+    .dot.warn{background:var(--warn)}
+    @media (min-width: 860px){
+      .card.span6{grid-column: span 6}
+      .card.span4{grid-column: span 4}
+      .cols{grid-template-columns: 1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Welcome 👋</h1>
+        <p class="subtitle">
+          This server hosts a few helpful tools: a private chat/AI assistant, an offline library, and a Fedora software repository mirror.
+        </p>
+        <div class="headerSearch">
+          <p class="headerSearchNote">Search your offline resources directly from here:</p>
+          <div id="bunker-search-home"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Chat / WebUI -->
+      <section class="card span6" id="chat">
+        <h2>💬 Chat (Private Assistant)</h2>
+        <p>
+          A simple web chat for asking questions, brainstorming, writing help, and general “computer-ish” assistance.
+          Think of it like a friendly helper that lives on this server.
+        </p>
+        <div class="kvs">
+          <span class="kv">Web app</span>
+          <span class="kv">Private to this server</span>
+          <span class="kv">Good for non-technical use</span>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="https://chat.akacc.net/" target="_blank" rel="noopener">Open Chat</a>
+          <a class="btn" href="#ai">How it works</a>
+        </div>
+        <div class="hint">
+          Tip: If you’re unsure what to ask, try: <em>“Summarize this article…”</em>, <em>“Help me draft an email…”</em>, or <em>“Give me a checklist for…”</em>
+        </div>
+      </section>
+
+      <!-- Offline Library -->
+      <section class="card span6" id="library">
+        <h2>📚 Offline Library (Kiwix)</h2>
+        <p>
+          A browseable offline library of reference content (great when the internet is slow or you just want a distraction-free read).
+        </p>
+        <div class="kvs">
+          <span class="kv">Fast local access</span>
+          <span class="kv">Works on phones & tablets</span>
+          <span class="kv">Library may change over time</span>
+        </div>
+        <div class="actions">
+          <!-- NOTE: If you have a hostname for this service, put it here.
+               Example: https://library.akacc.net/
+               If it’s only on a port, you can use http://fedora.akacc.net:7070/ (but browsers may warn on mixed content). -->
+          <a class="btn secondary" href="http://fedora.akacc.net:7070/" target="_blank" rel="noopener">Open Library</a>
+          <a class="btn" href="#help">Quick help</a>
+        </div>
+        <div class="hint">
+          If this link doesn’t open, it may need a friendly HTTPS hostname (ask the server admin to “make a library.akacc.net alias”).
+        </div>
+      </section>
+
+      <!-- AI / Ollama -->
+      <section class="card span6" id="ai">
+        <h2>🧠 Local AI (Ollama)</h2>
+        <p>
+          The “brain” behind the assistant. Models run locally on this server (not on a public cloud), which is great for privacy.
+        </p>
+
+        <div class="kvs">
+          <span class="kv">GPU + CPU options</span>
+          <span class="kv">Private by default</span>
+          <span class="kv">Used by the chat app</span>
+        </div>
+
+        <div class="actions">
+          <a class="btn" href="https://fedora.akacc.net/ollama" target="_blank" rel="noopener">Check AI Status</a>
+          <a class="btn" href="#advanced">Advanced</a>
+        </div>
+
+        <div class="hint">
+          Most people never need to touch this directly—using the Chat web page is the easiest way.
+        </div>
+      </section>
+
+      <!-- Fedora repos -->
+      <section class="card span6" id="repos">
+        <h2>📦 Fedora Repositories (Local Mirror)</h2>
+        <p>
+          A local copy of Fedora packages to make Linux updates faster and more reliable on your network.
+          If you have a Fedora machine, this can save time on updates.
+        </p>
+
+        <div class="kvs">
+          <span class="kv">Faster updates on LAN</span>
+          <span class="kv">Good for multiple computers</span>
+          <span class="kv">Auto-updates weekly</span>
+        </div>
+
+        <div class="actions">
+          <a class="btn" href="#fedora-setup">Fedora setup instructions</a>
+        </div>
+
+        <div class="hint">
+          This is mainly for Fedora users. If you don’t know what Fedora is, you can safely ignore this section.
+        </div>
+      </section>
+
+      <!-- Quick Help -->
+      <section class="card span12" id="help">
+        <h2>✅ Quick Help</h2>
+        <div class="cols">
+          <div>
+            <p><strong>If something won’t open…</strong></p>
+            <ul class="small">
+              <li>Try refreshing the page.</li>
+              <li>Try a different browser (Chrome or Firefox).</li>
+              <li>If you’re on a phone, switch Wi-Fi off/on and retry.</li>
+              <li>If it still fails, tell the admin which button you clicked and what you saw.</li>
+            </ul>
+          </div>
+          <div>
+            <p><strong>Good first questions for Chat</strong></p>
+            <ul class="small">
+              <li>“Make a grocery list from these meals…”</li>
+              <li>“Rewrite this message to sound friendly…”</li>
+              <li>“Explain this in plain English…”</li>
+              <li>“Plan a weekend itinerary for…”</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fedora setup block -->
+      <section class="card span12" id="fedora-setup">
+        <h2>🐧 Fedora setup (optional)</h2>
+        <p>
+          If you have a Fedora computer and want faster updates, you can point it at this server’s repository mirror.
+          This is safe to skip if you’re not comfortable with terminal commands.
+        </p>
+
+        <div class="cols">
+          <div>
+            <p class="small"><strong>Option A: Use the mirror (recommended on the local network)</strong></p>
+            <div class="code"># Example: set a local mirror base URL (edit to match your repo layout)
+# NOTE: This is a template — your admin may have a specific .repo file.
+
+sudo tee /etc/yum.repos.d/local-mirror.repo &gt; /dev/null &lt;&lt;'EOF'
+[local-mirror]
+name=Local Fedora Mirror
+baseurl=https://fedora.akacc.net/fedora/$releasever/Everything/$basearch/os/
+enabled=1
+gpgcheck=0
+EOF
+
+sudo dnf clean all
+sudo dnf makecache</div>
+            <p class="small">
+              If the path above doesn’t match your mirror, ask the admin for the correct “baseurl” path.
+            </p>
+          </div>
+
+          <div>
+            <p class="small"><strong>Option B: Just test connectivity</strong></p>
+            <div class="code"># Does the server respond?
+curl -I https://fedora.akacc.net/ || true
+
+# If you already have a mirror URL, test it:
+# curl -I https://fedora.akacc.net/fedora/</div>
+            <p class="small">
+              Seeing “200 OK” is a good sign. “404” means the path is wrong, not necessarily that the server is down.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced / Admin notes -->
+      <section class="card span12" id="advanced">
+        <h2>🛠️ Advanced (admin notes)</h2>
+        <p>
+          This section is here as a quick reminder for the person maintaining the server.
+        </p>
+
+        <div class="cols">
+          <div>
+            <p class="small"><strong>Helpful links</strong></p>
+            <div class="code">Chat (proxy target): http://127.0.0.1:3000/
+LibreChat backend:      http://127.0.0.1:3080/
+Ollama (GPU):           http://127.0.0.1:11434/
+Ollama (CPU):           http://127.0.0.1:21434/
+Kiwix:                  http://127.0.0.1:7070/</div>
+          </div>
+
+          <div>
+            <p class="small"><strong>Common commands</strong></p>
+            <div class="code"># See running containers
+docker ps
+
+# Tail logs (example)
+docker logs -f LibreChat
+
+# Weekly repo refresh (runs Sundays at 03:00)
+cat /etc/crontab
+sudo tail -n 200 /var/log/repo_update.log</div>
+          </div>
+        </div>
+
+        <div class="hint">
+          Note: This page is static on purpose (simple + reliable). If you want live status cards later, you can add a tiny JSON status endpoint and fetch it from JS.
+        </div>
+      </section>
+    </main>
+
+    <div class="footer">
+      <div>Made with ❤️ for humans (and future-you).</div>
+      <div class="small">Last updated: <span id="lastUpdated"></span></div>
+    </div>
+  </div>
+
+  <script
+    src="/bunker-search/embed/bunker-search.js"
+    data-target="#bunker-search-home"
+    data-api="/bunker-search"
+    data-limit="10"
+    data-source="kiwix"
+    data-answer="false"
+  ></script>
+
+  <script>
+    // Simple "Last updated" stamp, based on file modified time where supported.
+    // If not available, fallback to today's date.
+    (function(){
+      const el = document.getElementById('lastUpdated');
+      try {
+        const d = new Date(document.lastModified);
+        if (!isNaN(d.getTime())) {
+          el.textContent = d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+          return;
+        }
+      } catch(e) {}
+      const now = new Date();
+      el.textContent = now.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+    })();
+  </script>
+</body>
+</html>

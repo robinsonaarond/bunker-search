@@ -1,0 +1,82 @@
+# Directory for Tantivy index + incremental manifest.
+index_dir = "data/index"
+
+# Bind for the search API.
+bind = "127.0.0.1:8787"
+
+# Origins allowed to call the API from browser JavaScript.
+cors_allowed_origins = [
+  "https://fedora.akacc.net",
+  "http://fedora.akacc.net",
+]
+
+# Default and maximum result counts per query.
+default_result_limit = 20
+max_result_limit = 100
+
+# Avoid indexing huge local documents fully; keeps index smaller.
+max_indexed_chars = 200000
+
+# Tantivy writer RAM budget while indexing.
+writer_memory_bytes = 200000000
+
+# Kiwix federation (no JSONL export required).
+# This queries your existing Kiwix server at search time and merges results.
+[kiwix]
+base_url = "http://fedora.akacc.net:7070"
+
+# Optional explicit collection IDs. If empty and auto_discover_collections=true,
+# collections are discovered from /catalog/v2/entries.
+collections = [
+  "wikipedia_en_all_mini_2025-06",
+  "gutenberg_en_all",
+  "stackoverflow.com_en_all_nopic_2022-07",
+]
+
+# Optional category filter on discovered collections.
+# Examples: "wikipedia", "gutenberg", "stack_exchange"
+categories = []
+
+# Auto-discover collections via OPDS catalog.
+auto_discover_collections = true
+
+# Max hits pulled from each collection for one query.
+max_hits_per_collection = 8
+
+# HTTP timeout for Kiwix requests.
+timeout_secs = 10
+
+# Optional Ollama answer synthesis (use with /api/search?...&answer=true)
+#[ollama]
+#base_url = "http://127.0.0.1:11434"
+#model = "llama3.2:3b"
+#timeout_secs = 20
+#max_context_hits = 8
+#max_context_chars = 4000
+
+# Optional local index sources (useful for non-Kiwix data).
+# If you only use Kiwix federation, you can leave [[sources]] out entirely.
+
+# Source: directory trees
+#[[sources]]
+#type = "filesystem"
+#name = "library"
+#path = "/path/to/offline-library"
+#extensions = ["html", "htm", "txt", "md", "xml", "json"]
+#follow_symlinks = false
+
+# Source: JSONL docs (one JSON object per line)
+#[[sources]]
+#type = "jsonl"
+#name = "custom-jsonl"
+#path = "/path/to/documents.jsonl"
+#id_field = "id"
+#title_field = "title"
+#body_field = "body"
+#url_field = "url"
+
+# Source: Stack Exchange dump Posts.xml
+#[[sources]]
+#type = "stack_exchange_xml"
+#name = "stackoverflow-xml"
+#path = "/path/to/Posts.xml"
