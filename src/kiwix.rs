@@ -136,7 +136,7 @@ impl KiwixClient {
 
         let mut total_hits = 0usize;
         let mut hits = Vec::new();
-        let page_len = self.max_hits_per_collection.min(limit.max(1));
+        let page_len = self.max_hits_per_collection.max(limit.max(1)).min(75);
 
         for collection in selected {
             match self.search_collection(collection, query, page_len).await {

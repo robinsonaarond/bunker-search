@@ -41,7 +41,7 @@ categories = []
 auto_discover_collections = true
 
 # Max hits pulled from each collection for one query.
-max_hits_per_collection = 8
+max_hits_per_collection = 20
 
 # HTTP timeout for Kiwix requests.
 timeout_secs = 10

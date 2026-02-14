@@ -184,7 +184,8 @@ async fn search_handler(
 
     let fetch_count = offset
         .saturating_add(limit)
-        .min(state.max_limit.saturating_mul(10).max(limit));
+        .saturating_mul(3)
+        .min(state.max_limit.saturating_mul(20).max(limit));
 
     let mut total_hits = 0usize;
     let mut hits = Vec::new();
@@ -215,6 +216,8 @@ async fn search_handler(
             hits.extend(kiwix_result.hits);
         }
     }
+
+    rerank_hits(&query, &mut hits);
 
     let paged_hits: Vec<SearchHit> = hits.into_iter().skip(offset).take(limit).collect();
 
@@ -287,6 +290,160 @@ fn collect_local_sources(sources: &[SourceConfig]) -> Vec<String> {
 
 fn is_kiwix_filter(value: &str) -> bool {
     value.eq_ignore_ascii_case("kiwix") || value.starts_with("kiwix:")
+}
+
+fn rerank_hits(query: &str, hits: &mut [SearchHit]) {
+    let normalized_query = normalize_for_matching(query);
+    if normalized_query.is_empty() || hits.is_empty() {
+        return;
+    }
+
+    let query_tokens = tokenize(&normalized_query);
+    if query_tokens.is_empty() {
+        return;
+    }
+
+    for hit in hits.iter_mut() {
+        hit.score = rerank_score(hit, &normalized_query, &query_tokens);
+    }
+
+    hits.sort_by(|left, right| {
+        right
+            .score
+            .total_cmp(&left.score)
+            .then_with(|| left.title.len().cmp(&right.title.len()))
+            .then_with(|| left.title.cmp(&right.title))
+    });
+}
+
+fn rerank_score(hit: &SearchHit, normalized_query: &str, query_tokens: &[String]) -> f32 {
+    let base_score = hit.score.max(0.0);
+
+    let normalized_title = normalize_for_matching(&hit.title);
+    let normalized_preview = normalize_for_matching(&hit.preview);
+    let normalized_location = normalize_for_matching(&hit.location);
+    let location_lc = hit.location.to_lowercase();
+    let title_lc = hit.title.to_lowercase();
+    let source_lc = hit.source.to_lowercase();
+
+    let title_coverage = token_coverage(query_tokens, &normalized_title);
+    let preview_coverage = token_coverage(query_tokens, &normalized_preview);
+
+    let mut boost = 0.0;
+
+    if normalized_title == normalized_query {
+        boost += 320.0;
+    }
+    if normalized_title.contains(normalized_query) && normalized_query.len() >= 5 {
+        boost += 210.0;
+    }
+
+    // Title coverage gets stronger weight than snippet coverage.
+    boost += title_coverage * 340.0;
+    boost += preview_coverage * 90.0;
+
+    let is_gutenberg = source_lc.contains("gutenberg");
+    if is_gutenberg {
+        boost += title_coverage * 240.0;
+        if title_coverage >= 0.6 {
+            boost += 80.0;
+        }
+        if title_coverage >= 0.75 {
+            boost += 220.0;
+        }
+        if title_coverage >= 0.9 {
+            boost += 160.0;
+        }
+
+        if !normalized_query.contains("chapter")
+            && (title_lc.contains(", chapters") || location_lc.contains("chapters%20"))
+        {
+            boost -= 130.0;
+        }
+
+        if !normalized_query.contains("cover")
+            && (title_lc.contains('(') || title_lc.contains("edition"))
+        {
+            boost -= 35.0;
+        }
+
+        if location_lc.ends_with(".html")
+            && !location_lc.contains("chapters%20")
+            && !location_lc.contains("_cover")
+        {
+            boost += 90.0;
+        }
+    }
+
+    // Prefer full book page over cover page for normal title searches.
+    let is_cover = normalized_title.contains(" cover")
+        || normalized_location.contains(" cover")
+        || location_lc.contains("_cover");
+    if is_cover && !normalized_query.contains("cover") {
+        boost -= 90.0;
+    }
+
+    base_score + boost
+}
+
+fn token_coverage(query_tokens: &[String], target_text: &str) -> f32 {
+    if query_tokens.is_empty() || target_text.is_empty() {
+        return 0.0;
+    }
+
+    let target_tokens: Vec<&str> = target_text.split_whitespace().collect();
+    if target_tokens.is_empty() {
+        return 0.0;
+    }
+
+    let mut exact_hits = 0usize;
+    let mut prefix_hits = 0usize;
+
+    for query_token in query_tokens {
+        if target_tokens
+            .iter()
+            .any(|target| *target == query_token.as_str())
+        {
+            exact_hits += 1;
+            continue;
+        }
+
+        if query_token.len() >= 3
+            && target_tokens.iter().any(|target| {
+                target.starts_with(query_token.as_str()) || query_token.starts_with(*target)
+            })
+        {
+            prefix_hits += 1;
+        }
+    }
+
+    (exact_hits as f32 + prefix_hits as f32 * 0.7) / query_tokens.len() as f32
+}
+
+fn tokenize(normalized_text: &str) -> Vec<String> {
+    normalized_text
+        .split_whitespace()
+        .filter(|token| !token.is_empty())
+        .map(|token| token.to_string())
+        .collect()
+}
+
+fn normalize_for_matching(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    let mut last_space = false;
+
+    for ch in input.chars() {
+        let lower = ch.to_ascii_lowercase();
+        if lower.is_ascii_alphanumeric() {
+            out.push(lower);
+            last_space = false;
+        } else if !last_space {
+            out.push(' ');
+            last_space = true;
+        }
+    }
+
+    out.trim().to_string()
 }
 
 async fn shutdown_signal() {

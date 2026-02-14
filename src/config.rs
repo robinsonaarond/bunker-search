@@ -174,7 +174,7 @@ fn default_kiwix_auto_discover() -> bool {
 }
 
 fn default_kiwix_max_hits_per_collection() -> usize {
-    8
+    20
 }
 
 fn default_kiwix_timeout_secs() -> u64 {
